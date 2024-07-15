@@ -876,14 +876,18 @@ See info node `(magit)Debugging Tools' for more information."
                    (delete-dups
                     (seq-keep
                      (lambda (lib)
-                       (if-let ((path (locate-library lib)))
-                           (file-name-directory path)
-                         (error "Cannot find mandatory dependency %s" lib)))
+                       (let ((path (locate-library lib)))
+                         (cond
+                          (path
+                           (list (file-name-directory path)))
+                          ((not (equal lib "libgit"))
+                           (error "Cannot find mandatory dependency %s" lib)))))
                      '(;; Like `LOAD_PATH' in `default.mk'.
                        "compat"
                        "cond-let"
                        "llama"
                        "seq"
+                       "libgit"
                        "transient"
                        "with-editor"
                        ;; Obviously `magit' itself is needed too.
