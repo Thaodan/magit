@@ -40,6 +40,8 @@ GITSTATS_DIR  ?= $(TOP)docs/stats
 GITSTATS_ARGS ?= -c style=https://magit.vc/assets/stats.css \
                  -c max_authors=180 -c graph_max_authors=7
 
+BUILD_MAGIT_LIBGIT ?= false
+
 ## Files #############################################################
 
 PKG       = magit
@@ -55,6 +57,9 @@ EPUBFILES = $(addsuffix .epub,$(filter-out git-commit,$(PACKAGES)))
 ELS  = git-commit.el
 ELS += magit-section.el
 ELS += magit-base.el
+ifeq "$(BUILD_MAGIT_LIBGIT)" "true"
+ELS += magit-libgit.el
+endif
 ELS += magit-git.el
 ELS += magit-mode.el
 ELS += magit-margin.el
@@ -166,6 +171,13 @@ ifeq "$(DASH_DIR)" ""
   DASH_DIR = $(TOP)../dash
 endif
 
+LIBGIT_DIR ?= $(shell \
+  find -L $(ELPA_DIR) -maxdepth 1 -regex '.*/libgit-[.0-9]*' 2> /dev/null | \
+  sort | tail -n 1)
+ifeq "$(LIBGIT_DIR)" ""
+  LIBGIT_DIR = $(TOP)../libgit
+endif
+
 SEQ_DIR ?= $(shell \
   find -L $(ELPA_DIR) -maxdepth 1 -regex '.*/seq-[.0-9]*' 2> /dev/null | \
   sort | tail -n 1)
@@ -206,6 +218,7 @@ LOAD_PATH = -L $(TOP)lisp
 ifdef CYGPATH
   LOAD_PATH += -L $(shell cygpath --mixed $(COMPAT_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(DASH_DIR))
+  LOAD_PATH += -L $(shell cygpath --mixed $(LIBGIT_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(SEQ_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(TRANSIENT_DIR))
   LOAD_PATH += -L $(shell cygpath --mixed $(WITH_EDITOR_DIR))
@@ -215,6 +228,7 @@ ifdef CYGPATH
 else
   LOAD_PATH += -L $(COMPAT_DIR)
   LOAD_PATH += -L $(DASH_DIR)
+  LOAD_PATH += -L $(LIBGIT_DIR)
   LOAD_PATH += -L $(SEQ_DIR)
   LOAD_PATH += -L $(TRANSIENT_DIR)
   LOAD_PATH += -L $(WITH_EDITOR_DIR)
