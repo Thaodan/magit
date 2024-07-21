@@ -999,6 +999,12 @@ of the current repository first; creating it if necessary."
    ("s" "since" magit-shortlog-since)
    ("r" "range" magit-shortlog-range)])
 
+(defun magit-shortlog-setup-buffer (&optional locked)
+  (require 'magit)
+  (with-current-buffer
+      (magit-setup-buffer #'magit-shortlog-mode locked))
+    (current-buffer))
+
 (defun magit-git-shortlog (rev args)
   (let ((dir default-directory))
     (with-current-buffer (get-buffer-create "*magit-shortlog*")
@@ -1025,6 +1031,34 @@ of the current repository first; creating it if necessary."
    (list (magit-read-range-or-commit "Shortlog for revision or range")
          (transient-args 'magit-shortlog)))
   (magit-git-shortlog rev-or-range args))
+
+(defvar-keymap magit-shortlog-mode-map
+  :doc "Keymap for `magit-shortlog-mode'"
+  :parent magit-mode-map)
+
+(define-derived-mode magit-shortlog-mode special-mode "Magit-Shortlog"
+  "Mode for Git shortlog"
+  :group 'magit
+  (buffer-disable-undo)
+  (setq buffer-read-only t)
+  (setq-local line-move-visual t) ; see #1771
+  ;; Turn off syntactic font locking, but not by setting
+  ;; `font-lock-defaults' because that would enable font locking, and
+  ;; not all magit plugins may be ready for that (see #3950).
+  (setq-local font-lock-syntactic-face-function #'ignore)
+  (setq show-trailing-whitespace nil)
+  (setq-local symbol-overlay-inhibit-map t)
+  (setq list-buffers-directory (abbreviate-file-name default-directory))
+  (make-local-variable 'text-property-default-nonsticky)
+  (push (cons 'keymap t) text-property-default-nonsticky)
+
+  (magit-hack-dir-local-variables)
+  (face-remap-add-relative 'header-line 'magit-header-line)
+  (setq mode-line-process (magit-repository-local-get 'mode-line-process))
+  (setq-local revert-buffer-function #'magit-refresh-buffer)
+  (setq-local bookmark-make-record-function #'magit--make-bookmark)
+  (setq-local imenu-create-index-function #'magit--imenu-create-index)
+  (setq-local imenu-default-goto-function #'magit--imenu-goto-function))
 
 ;;; Log Mode
 
