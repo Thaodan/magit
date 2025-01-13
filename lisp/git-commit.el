@@ -1014,7 +1014,9 @@ something like:
        ;; Leading empty lines and comments
        (format "\\`\\(?:^\\(?:\\s-*\\|%s.*\\)\n\\)*" comment-start)
        ;; Summary line
-       (format "\\(.\\{0,%d\\}\\)\\(.*\\)" git-commit-summary-max-length)
+       (format "\\(.\\{0,%d\\}\\)\\(.*\\)" (if (local-variable-p 'vc-git-log-edit-summary-target-len)
+                                               vc-git-log-edit-summary-target-len
+                                               git-commit-summary-max-length))
        ;; Non-empty non-comment second line
        (format "\\(?:\n%s\\|\n\\(.+\\)\\)?" comment-start))
     "\\(EASTER\\) \\(EGG\\)"))
